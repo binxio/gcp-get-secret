@@ -11,6 +11,14 @@ gcp-get-secret bash -c 'echo $MYSQL_PASSWORD'
 the utility will lookup the value of `mysql_root_password` in the secret manager of the current project and replace 
 the environment variable. The program on the command line will be exec'ed with MYSQL\_PASSWORD set to the actual value.
 
+## secret names
+The required secret can be specified in the following formats:
+- `<name>`
+- `<name>/<version>`
+- `<project>/<name>`
+- `<project>/<name>/<version>`
+- `projects/<project>/secrets/<name>/versions/<version>`
+
 ## Query parameters
 The utility supports the following query parameters:
 
@@ -49,13 +57,6 @@ gcp-get-secret bash -c 'echo $PASSWORD'
 ```
 will print out the value of `dev_mysql_root_password`.
 
-## secret names
-The required secret can be specified in the following formats:
-- name
-- name/version
-- project/name
-- project/name/version
-- projects/<project>/secrets/<name>/versions/<version>
 ## Dockerfile usage
 To idiomatic way to use the utility is as follows:
 ```
