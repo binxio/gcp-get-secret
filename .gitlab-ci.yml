@@ -1,0 +1,5 @@
+---
+build:
+  stage: build
+  script:
+    - make REGISTRY_HOST=${REGISTRY_HOST:-docker.io} snapshot

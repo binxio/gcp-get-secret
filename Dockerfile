@@ -1,10 +1,9 @@
 FROM golang:1.14
-WORKDIR /go
 
-ADD . /go/src/github.com/binxio/gcp-get-secret
+WORKDIR /gcp-get-secret
+ADD . /gcp-get-secret
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -o gcp-get-secret -ldflags '-extldflags "-static"' .
 
-RUN go get github.com/binxio/gcp-get-secret
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static"' github.com/binxio/gcp-get-secret
-
-FROM 		scratch
-COPY --from=0		/go/gcp-get-secret /
+FROM scratch
+COPY --from=0 /gcp-get-secret/gcp-get-secret /
