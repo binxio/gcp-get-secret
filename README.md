@@ -86,6 +86,3 @@ FROM binxio/gcp-get-secret
 FROM alpine:3.6
 COPY --from=0 /gcp-get-secret /usr/local/bin/
 ```
-
-## download
-you can download a 64 bit Linux or MacOS binary from [https://github.com/binxio/gcp-get-secret/releases](https://github.com/binxio/gcp-get-secret/releases).
