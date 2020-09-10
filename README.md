@@ -8,8 +8,7 @@ It is simple. Specify one or more environment variables with a URI of the gcp: p
 export MYSQL_PASSWORD=gcp:///mysql_root_password'
 gcp-get-secret bash -c 'echo $MYSQL_PASSWORD'
 ```
-the utility will lookup the value of `mysql_root_password` in the secret manager of the current project and replace 
-the environment variable. The program on the command line will be exec'ed with MYSQL\_PASSWORD set to the actual value.
+the utility will lookup the value of `mysql_root_password` in the secret manager of the current project and replace the environment variable. The program on the command line will be exec'ed with MYSQL\_PASSWORD set to the actual value.
 
 ## secret names
 The required secret can be specified in the following formats:
