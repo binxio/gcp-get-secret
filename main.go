@@ -34,19 +34,17 @@ import (
 	"strings"
 	"syscall"
 	"text/template"
-	//cloudresourcemanager"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 var verbose bool
 
 type Main struct {
-	ctx           context.Context
-	configuration string
-	project       string
-	verbose       bool
-	credentials   *google.Credentials
-	client        *secretmanager.Client
-	clientError   error
+	ctx         context.Context
+	project     string
+	verbose     bool
+	credentials *google.Credentials
+	client      *secretmanager.Client
+	clientError error
 
 	name    string
 	command []string
@@ -62,25 +60,33 @@ type GoogleSecretRef struct {
 }
 
 func (m *Main) initialize() {
-	flag.StringVar(&m.configuration, "configuration", "", "`name` of the gcloud configuration to use")
+	var useDefaultCredentials bool
 	flag.StringVar(&m.project, "project", "", "`id` of the project to query")
 	flag.BoolVar(&m.verbose, "verbose", false, "get debug output")
+	flag.BoolVar(&useDefaultCredentials, "use-default-credentials", false, "and ignore gcloud configuration")
 	flag.StringVar(&m.name, "name", "", "of the secret")
 	flag.Parse()
 
 	m.ctx = context.Background()
 	m.command = flag.Args()
 
-	if m.configuration == "" {
+	if useDefaultCredentials {
 		if m.verbose {
 			log.Printf("INFO: using default application credentials\n")
 		}
 		m.credentials, m.clientError = google.FindDefaultCredentials(m.ctx)
 	} else {
-		if m.verbose {
-			log.Printf("INFO: using credentials from gcloud configuration %s\n", m.configuration)
+		if !gcloudconfig.IsGCloudOnPath() {
+			if m.verbose {
+				log.Printf("WARNING: no gcloud on path, using default credentials")
+			}
+			m.credentials, m.clientError = google.FindDefaultCredentials(m.ctx)
+		} else {
+			if m.verbose {
+				log.Printf("INFO: using credentials from gcloud configuration\n")
+			}
+			m.credentials, m.clientError = gcloudconfig.GetCredentials("")
 		}
-		m.credentials, m.clientError = gcloudconfig.GetCredentials(m.configuration)
 	}
 
 	if m.clientError != nil {
