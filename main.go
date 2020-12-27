@@ -38,6 +38,8 @@ import (
 
 var verbose bool
 
+const oauth2scope = "https://www.googleapis.com/auth/cloud-platform"
+
 type Main struct {
 	ctx         context.Context
 	project     string
@@ -70,23 +72,16 @@ func (m *Main) initialize() {
 	m.ctx = context.Background()
 	m.command = flag.Args()
 
-	if useDefaultCredentials {
+	if useDefaultCredentials || !gcloudconfig.IsGCloudOnPath() {
 		if m.verbose {
 			log.Printf("INFO: using default application credentials\n")
 		}
-		m.credentials, m.clientError = google.FindDefaultCredentials(m.ctx)
+		m.credentials, m.clientError = google.FindDefaultCredentials(m.ctx, oauth2scope)
 	} else {
-		if !gcloudconfig.IsGCloudOnPath() {
-			if m.verbose {
-				log.Printf("WARNING: no gcloud on path, using default credentials")
-			}
-			m.credentials, m.clientError = google.FindDefaultCredentials(m.ctx)
-		} else {
-			if m.verbose {
-				log.Printf("INFO: using credentials from gcloud configuration\n")
-			}
-			m.credentials, m.clientError = gcloudconfig.GetCredentials("")
+		if m.verbose {
+			log.Printf("INFO: using credentials from gcloud configuration\n")
 		}
+		m.credentials, m.clientError = gcloudconfig.GetCredentials("")
 	}
 
 	if m.clientError != nil {
