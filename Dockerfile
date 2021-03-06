@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.16
 
 WORKDIR /gcp-get-secret
 ADD . /gcp-get-secret
