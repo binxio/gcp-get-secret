@@ -347,10 +347,6 @@ func (m *Main) replaceDestinationReferencesWithURL(refs []GoogleSecretRef, env m
 
 // execute the `command` with the environment set to actual values from the parameter store
 func (m *Main) execProcess() {
-	program, err := exec.LookPath(m.command[0])
-	if err != nil {
-		log.Fatalf("could not find program %s on path, %s", m.command[0], err)
-	}
 
 	refs, err := m.environmentToGoogleSecretReferences(os.Environ())
 	if err != nil {
@@ -367,6 +363,18 @@ func (m *Main) execProcess() {
 	}
 
 	newEnv = m.replaceDestinationReferencesWithURL(refs, newEnv)
+
+	if len(m.command) == 1 && m.command[0] == "noop" {
+		if m.verbose {
+			log.Printf("INFO: noop")
+		}
+		return
+	}
+
+	program, err := exec.LookPath(m.command[0])
+	if err != nil {
+		log.Fatalf("could not find program %s on path, %s", m.command[0], err)
+	}
 
 	err = syscall.Exec(program, m.command, m.updateEnvironment(os.Environ(), newEnv))
 	if err != nil {
