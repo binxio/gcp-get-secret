@@ -29,6 +29,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -313,6 +314,16 @@ func (m *Main) updateEnvironment(env []string, newEnv map[string]string) []strin
 func (m *Main) writeParameterValues(refs []GoogleSecretRef, env map[string]string) error {
 	for _, ref := range refs {
 		if *ref.destination != "" {
+			path, err := filepath.Abs(*ref.destination)
+			if err != nil {
+				return fmt.Errorf("failed to determine absolute path for file %s, %s", *ref.destination, err)
+			}
+
+			err = os.MkdirAll(filepath.Dir(path), 0o755)
+			if err != nil {
+				return fmt.Errorf("failed to create directory for file %s, %s", *ref.destination, err)
+			}
+
 			f, err := os.Create(*ref.destination)
 			if err != nil {
 				return fmt.Errorf("failed to open file %s to write to, %s", *ref.destination, err)

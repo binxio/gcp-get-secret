@@ -6,7 +6,7 @@ function generate_password {
 }
 
 function gcp_get_secret {
-	./gcp-get-secret -verbose -configuration integration-test "$@"
+	./gcp-get-secret -verbose "$@"
 }
 
 function gcp_put_secret {
@@ -87,6 +87,21 @@ function test_destination {
 	rm $filename
 }
 
+function test_destination_directory_creation {
+	local result expect filename
+	expect=$(generate_password)
+	filename=$(mktemp -d)/create-this-directory-here/password-$$
+	gcp_put_secret postgres_root_password "$expect"
+
+	result=$(FILENAME=$filename \
+	         PASSWORD_FILE='gcp:///postgres_root_password?destination=$FILENAME&chmod=0600' \
+		gcp_get_secret bash -c 'echo $PASSWORD_FILE')
+	assert_equals $filename $result
+	assert_equals $expect $(<$filename)
+	assert_equals 600 $(stat -f %A $filename)
+	rm $filename
+}
+
 function test_destination_default {
 	local result expect filename
 	expect=$(generate_password)
@@ -152,6 +167,7 @@ function test_shorthand_project_and_version {
 
 
 function main {
+    gcloud config configurations activate integration-test
     go build -o gcp-get-secret .
     test_shorthand_project_and_version
     test_shorthand_project
@@ -162,6 +178,7 @@ function main {
     test_get_via_env_default
     test_destination
     test_destination_default
+    test_destination_directory_creation
     test_env_substitution
     test_template_format
 }
