@@ -117,7 +117,7 @@ func (m *Main) initialize() {
 			log.Printf("INFO: setting umask to %04o\n", mask)
 		}
 
-		syscall.Umask(int(mask))
+		setUmask(int(mask))
 	}
 	m.client, m.clientError = secretmanager.NewClient(m.ctx, option.WithCredentials(m.credentials))
 }
