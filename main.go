@@ -51,6 +51,7 @@ type Main struct {
 
 	name    string
 	command []string
+	umask   string
 }
 
 type GoogleSecretRef struct {
@@ -68,10 +69,15 @@ func (m *Main) initialize() {
 	flag.BoolVar(&m.verbose, "verbose", false, "get debug output")
 	flag.BoolVar(&useDefaultCredentials, "use-default-credentials", false, "and ignore gcloud configuration")
 	flag.StringVar(&m.name, "name", "", "of the secret")
+	flag.StringVar(&m.umask, "umask", "", "to set file creation and the command")
 	flag.Parse()
 
 	m.ctx = context.Background()
 	m.command = flag.Args()
+
+	if _, err := strconv.ParseUint(m.umask, 8, 32); m.umask != "" && err != nil {
+		log.Fatalf("umask %s", err)
+	}
 
 	if useDefaultCredentials || !gcloudconfig.IsGCloudOnPath() {
 		if m.verbose {
@@ -105,6 +111,14 @@ func (m *Main) initialize() {
 		return
 	}
 
+	if m.umask != "" {
+		mask, _ := strconv.ParseUint(m.umask, 8, 32)
+		if m.verbose {
+			log.Printf("INFO: setting umask to %04o\n", mask)
+		}
+
+		syscall.Umask(int(mask))
+	}
 	m.client, m.clientError = secretmanager.NewClient(m.ctx, option.WithCredentials(m.credentials))
 }
 

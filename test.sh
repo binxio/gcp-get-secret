@@ -35,6 +35,9 @@ function test_simple_get {
 	assert_equals $expect $result
 }
 
+
+
+
 function test_get_via_env {
 	local result expect
 	expect=$(generate_password)
@@ -86,6 +89,22 @@ function test_destination {
 	assert_equals 600 $(stat -f %A $filename)
 	rm $filename
 }
+
+function test_umask {
+	local result expect filename
+	expect=$(generate_password)
+	filename=/tmp/password-$$
+	gcp_put_secret postgres_root_password "$expect"
+
+	result=$(FILENAME=$filename \
+	         PASSWORD_FILE='gcp:///postgres_root_password?destination=$FILENAME' \
+		gcp_get_secret -umask 0077 bash -c 'echo $PASSWORD_FILE')
+	assert_equals $filename $result
+	assert_equals $expect $(<$filename)
+	assert_equals 600 $(stat -f %A $filename)
+	rm $filename
+}
+
 
 function test_destination_directory_creation {
 	local result expect filename
@@ -169,6 +188,7 @@ function test_shorthand_project_and_version {
 function main {
     gcloud config configurations activate integration-test
     go build -o gcp-get-secret .
+    test_umask
     test_shorthand_project_and_version
     test_shorthand_project
     test_shorthand_version
